@@ -1,11 +1,15 @@
--- ==================================================================
---      HOME ELECTRICAL SHOP DATABASE SCRIPT (LARGER VERSION)
--- ==================================================================
--- Current Date assumed for "last 3 years": 2025-04-14
 CREATE DATABASE IF NOT EXISTS nl2sql_test2;
 USE nl2sql_test2;
 
--- Drop existing tables if they exist to start fresh
+-- ==================================================================
+--      DATABASE SCRIPT FOR: nl2sql_test2
+--      HOME ELECTRICAL SHOP (LARGER VERSION - WITH AUTO_INCREMENT RESET ATTEMPT)
+-- ==================================================================
+-- Current Time: Monday, April 14, 2025 at 12:44:33 AM +08
+-- Location Context: Johor Bahru, Johor, Malaysia
+
+-- STEP 1: Ensure old tables are dropped.
+-- CRITICAL: Verify these commands execute WITHOUT error messages.
 DROP TABLE IF EXISTS Order_Items;
 DROP TABLE IF EXISTS Orders;
 DROP TABLE IF EXISTS Products;
@@ -15,10 +19,9 @@ DROP TABLE IF EXISTS SalesPersons;
 DROP TABLE IF EXISTS Vendors;
 
 -- --------------------------
---      TABLE CREATION
+-- STEP 2: TABLE CREATION
 -- --------------------------
 
--- Create Vendors Table
 CREATE TABLE Vendors (
     vendor_id INT AUTO_INCREMENT PRIMARY KEY,
     vendor_name VARCHAR(255) NOT NULL UNIQUE,
@@ -26,10 +29,9 @@ CREATE TABLE Vendors (
     phone VARCHAR(25),
     email VARCHAR(255) UNIQUE,
     address TEXT,
-    country VARCHAR(50) -- Added Country
+    country VARCHAR(50)
 );
 
--- Create SalesPersons Table
 CREATE TABLE SalesPersons (
     salesperson_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -37,10 +39,9 @@ CREATE TABLE SalesPersons (
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(25),
     hire_date DATE,
-    commission_rate DECIMAL(4, 2) DEFAULT 0.05 -- Added Commission Rate
+    commission_rate DECIMAL(4, 2) DEFAULT 0.05
 );
 
--- Create Customers Table
 CREATE TABLE Customers (
     customer_id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -50,28 +51,26 @@ CREATE TABLE Customers (
     address TEXT,
     city VARCHAR(100),
     postal_code VARCHAR(20),
-    country VARCHAR(50) DEFAULT 'Malaysia', -- Default country
+    country VARCHAR(50) DEFAULT 'Malaysia',
     registration_date DATE
 );
 
--- Create ProductCategories Table
 CREATE TABLE ProductCategories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT
 );
 
--- Create Products Table
 CREATE TABLE Products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
     description TEXT,
     category_id INT,
     vendor_id INT,
-    purchase_price DECIMAL(10, 2), -- Price bought from vendor
-    selling_price DECIMAL(10, 2) NOT NULL, -- Price sold to customer
+    purchase_price DECIMAL(10, 2),
+    selling_price DECIMAL(10, 2) NOT NULL,
     stock_quantity INT DEFAULT 0,
-    warranty_period_months INT DEFAULT 12, -- Added Warranty
+    warranty_period_months INT DEFAULT 12,
     FOREIGN KEY (category_id) REFERENCES ProductCategories(category_id) ON DELETE SET NULL,
     FOREIGN KEY (vendor_id) REFERENCES Vendors(vendor_id) ON DELETE SET NULL
 );
@@ -82,11 +81,18 @@ CREATE TABLE Orders (
     customer_id INT,
     salesperson_id INT,
     order_date DATETIME NOT NULL,
-    status ENUM('Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled') DEFAULT 'Pending', -- Added Status
-    shipping_address TEXT, -- Added Shipping Address if different
+    status ENUM('Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled') DEFAULT 'Pending',
+    shipping_address TEXT,
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE SET NULL,
     FOREIGN KEY (salesperson_id) REFERENCES SalesPersons(salesperson_id) ON DELETE SET NULL
 );
+
+-- **** ADDED LINE ****
+-- Attempt to reset AUTO_INCREMENT for Orders table to 1.
+-- This may help if the DROP TABLE command failed and left old data.
+-- NOTE: This command might require specific privileges.
+ALTER TABLE Orders AUTO_INCREMENT = 1;
+-- **** END OF ADDED LINE ****
 
 -- Create Order_Items Table
 CREATE TABLE Order_Items (
@@ -94,14 +100,14 @@ CREATE TABLE Order_Items (
     order_id INT,
     product_id INT,
     quantity INT NOT NULL CHECK (quantity > 0),
-    price_per_unit DECIMAL(10, 2) NOT NULL, -- Price at the time of sale
-    discount DECIMAL(5, 2) DEFAULT 0.00, -- Added Discount per item
+    price_per_unit DECIMAL(10, 2) NOT NULL,
+    discount DECIMAL(5, 2) DEFAULT 0.00,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE RESTRICT -- Prevent deleting product if it's in an order
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE RESTRICT
 );
 
 -- --------------------------
---      INDEX CREATION
+-- STEP 3: INDEX CREATION
 -- --------------------------
 CREATE INDEX idx_vendor_country ON Vendors(country);
 CREATE INDEX idx_customer_city ON Customers(city);
@@ -117,10 +123,10 @@ CREATE INDEX idx_orderitems_order ON Order_Items(order_id);
 CREATE INDEX idx_orderitems_product ON Order_Items(product_id);
 
 -- --------------------------
---      SAMPLE DATA INSERTION
+-- STEP 4: SAMPLE DATA INSERTION
 -- --------------------------
 
--- Insert Vendors (More vendors)
+-- Insert Vendors
 INSERT INTO Vendors (vendor_name, contact_person, phone, email, address, country) VALUES
 ('Global Electronics Inc.', 'Sarah Chen', '+1-555-0101', 'sales@globalelectronics.com', '1 Tech Park, Silicon Valley', 'USA'),
 ('Appliance Masters Ltd.', 'David Lee', '+44-20-7946-0102', 'contact@appliancemasters.co.uk', '2 Industrial Way, London', 'UK'),
@@ -133,7 +139,7 @@ INSERT INTO Vendors (vendor_name, contact_person, phone, email, address, country
 ('MY Local Distributor', 'Ahmad Bin Ismail', '03-1234 5678', 'ahmad.i@mylocal.com.my', '9 Jalan Industri, Shah Alam', 'Malaysia'),
 ('EcoFriendly Elec Co.', 'Maria Garcia', '+34-91-111-2233', 'maria.g@ecofriendly.es', '10 Calle Verde, Madrid', 'Spain');
 
--- Insert Sales Persons (More salespeople with commissions)
+-- Insert Sales Persons
 INSERT INTO SalesPersons (first_name, last_name, email, phone, hire_date, commission_rate) VALUES
 ('Alice', 'Smith', 'alice.s@shop.com.my', '012-3456781', '2021-08-15', 0.06),
 ('Bob', 'Johnson', 'bob.j@shop.com.my', '019-8765432', '2022-01-10', 0.05),
@@ -142,7 +148,7 @@ INSERT INTO SalesPersons (first_name, last_name, email, phone, hire_date, commis
 ('Ethan', 'Miller', 'ethan.m@shop.com.my', '018-7788990', '2024-02-12', 0.05),
 ('Fiona', 'Wilson', 'fiona.w@shop.com.my', '011-1212121', '2024-07-01', 0.04);
 
--- Insert Customers (More customers, some local)
+-- Insert Customers
 INSERT INTO Customers (first_name, last_name, email, phone, address, city, postal_code, country, registration_date) VALUES
 ('John', 'Doe', 'john.doe@email.com', '555-2221', '123 Main St', 'New York', '10001', 'USA', '2022-05-20'),
 ('Jane', 'Smith', 'jane.s@email.com', '555-2222', '456 Oak Ave', 'London', 'SW1A 0AA', 'UK', '2022-06-11'),
@@ -156,7 +162,6 @@ INSERT INTO Customers (first_name, last_name, email, phone, address, city, posta
 ('Abdul', 'Bin Hamid', 'abdul.h@email.com.my', '018-6677889', '5 Jalan Mutiara', 'Johor Bahru', '80250', 'Malaysia', '2024-01-20'),
 ('Isabelle', 'Dubois', 'isabelle.d@email.fr', '+33-1-4567890', '10 Rue de la Paix', 'Paris', '75002', 'France', '2023-05-11'),
 ('Kenji', 'Sato', 'kenji.s@email.jp', '+81-80-1234-5678', '1-2-3 Shibuya', 'Tokyo', '150-0002', 'Japan', '2024-04-01'),
--- Add more customers (up to 30)
 ('Fatima', 'Al-Sayed', 'fatima.a@email.ae', '+971-50-111-2222', 'Villa 5, Jumeirah', 'Dubai', '34106', 'UAE', '2022-11-05'),
 ('Carlos', 'Gomez', 'carlos.g@email.mx', '+52-55-9876-5432', 'Av. Reforma 100', 'Mexico City', '06600', 'Mexico', '2023-06-25'),
 ('Aisha', 'Binti Ibrahim', 'aisha.i@email.com.my', '011-3344556', '18 Jalan Ceria', 'Johor Bahru', '81300', 'Malaysia', '2023-08-18'),
@@ -176,8 +181,7 @@ INSERT INTO Customers (first_name, last_name, email, phone, address, city, posta
 ('Ahmed', 'Khan', 'ahmed.k@email.pk', '+92-300-1112233', 'House 5, Sector F-8', 'Islamabad', '44000', 'Pakistan', '2024-11-15'),
 ('Maria', 'Silva', 'maria.s@email.br', '+55-11-98765-4321', 'Rua Augusta 1500', 'Sao Paulo', '01304-001', 'Brazil', '2023-01-05');
 
-
--- Insert Product Categories (More categories)
+-- Insert Product Categories
 INSERT INTO ProductCategories (category_name, description) VALUES
 ('Major Kitchen Appliances', 'Refrigerators, Ovens, Dishwashers'),
 ('Audio & Video Entertainment', 'TVs, Sound Systems, Projectors'),
@@ -188,7 +192,7 @@ INSERT INTO ProductCategories (category_name, description) VALUES
 ('Smart Home Devices', 'Smart Speakers, Smart Lighting, Smart Security'),
 ('Power & Accessories', 'Extension cords, Adapters, Surge Protectors');
 
--- Insert Products (More products with variety)
+-- Insert Products
 INSERT INTO Products (product_name, description, category_id, vendor_id, purchase_price, selling_price, stock_quantity, warranty_period_months) VALUES
 ('Smart Frost-Free Refrigerator XL', '450L Capacity, WiFi Enabled', 1, 1, 1500.00, 2199.99, 10, 24),
 ('Ultra HD 8K QLED TV 65"', '65-inch 8K Television with Quantum Dot', 2, 1, 1800.00, 2999.99, 8, 24),
@@ -217,207 +221,95 @@ INSERT INTO Products (product_name, description, category_id, vendor_id, purchas
 ('Electric Hand Mixer 5-Speed', 'Lightweight, includes beaters and dough hooks', 5, 9, 25.00, 39.99, 55, 12);
 
 
--- Insert Orders (More orders spanning last 3 years)
--- Dates range roughly from 2022-04-14 to 2025-04-14
+-- Insert Orders (Parent Records) - Should get IDs 1-40 due to AUTO_INCREMENT reset attempt above
 INSERT INTO Orders (customer_id, salesperson_id, order_date, status, shipping_address) VALUES
-(6, 1, '2022-04-20 11:05:00', 'Delivered', NULL), -- Siti
-(1, 2, '2022-05-15 14:20:00', 'Delivered', NULL), -- John
-(7, 3, '2022-06-10 09:30:00', 'Delivered', NULL), -- Lim
-(11, 1, '2022-07-05 16:00:00', 'Delivered', '15 Rue de Rivoli, Paris'), -- Isabelle
-(8, 2, '2022-08-18 10:45:00', 'Delivered', NULL), -- Kumar
-(13, 4, '2022-09-22 13:10:00', 'Delivered', NULL), -- Fatima
-(2, 1, '2022-10-30 15:00:00', 'Delivered', NULL), -- Jane
-(9, 3, '2022-11-25 11:55:00', 'Delivered', NULL), -- Chen
-(15, 4, '2022-12-15 17:30:00', 'Delivered', NULL), -- Aisha
-(3, 2, '2023-01-20 09:00:00', 'Delivered', NULL), -- Peter
-(10, 5, '2023-02-14 10:10:00', 'Delivered', NULL), -- Abdul
-(17, 6, '2023-03-05 12:25:00', 'Delivered', NULL), -- Hans
-(4, 1, '2023-04-19 14:50:00', 'Delivered', NULL), -- Mary
-(12, 3, '2023-05-28 11:15:00', 'Delivered', NULL), -- Kenji
-(19, 4, '2023-06-30 16:40:00', 'Delivered', NULL), -- Tan Ah Kow
-(5, 2, '2023-07-11 09:55:00', 'Delivered', NULL), -- David Brown
-(21, 5, '2023-08-09 13:00:00', 'Delivered', NULL), -- Mike Lee
-(6, 1, '2023-09-14 10:35:00', 'Delivered', NULL), -- Siti
-(23, 6, '2023-10-21 15:20:00', 'Delivered', NULL), -- William
-(25, 3, '2023-11-16 17:05:00', 'Delivered', NULL), -- Mohd Ali
-(14, 4, '2023-12-22 11:45:00', 'Delivered', 'Av. Insurgentes Sur 500, Mexico City'), -- Carlos
-(16, 5, '2024-01-29 10:00:00', 'Shipped', NULL), -- Ravi
-(18, 6, '2024-02-17 14:00:00', 'Shipped', NULL), -- Olivia
-(7, 1, '2024-03-10 16:15:00', 'Processing', NULL), -- Lim
-(20, 2, '2024-04-05 09:20:00', 'Delivered', NULL), -- Chloe
-(22, 3, '2024-05-12 11:00:00', 'Delivered', NULL), -- Nur
-(1, 4, '2024-06-18 13:30:00', 'Delivered', NULL), -- John
-(24, 5, '2024-07-25 15:50:00', 'Delivered', NULL), -- Sophia
-(9, 6, '2024-08-30 10:10:00', 'Delivered', NULL), -- Chen
-(26, 1, '2024-09-11 12:40:00', 'Shipped', NULL), -- Anna
-(10, 2, '2024-10-16 14:25:00', 'Processing', NULL), -- Abdul
-(28, 3, '2024-11-20 09:45:00', 'Delivered', NULL), -- Jennifer
-(12, 4, '2024-12-08 16:00:00', 'Delivered', NULL), -- Kenji
-(30, 5, '2025-01-15 11:35:00', 'Processing', NULL), -- Maria Silva
-(3, 6, '2025-01-28 17:10:00', 'Shipped', NULL), -- Peter
-(27, 1, '2025-02-19 10:50:00', 'Pending', NULL), -- David Kim
-(15, 2, '2025-03-05 14:05:00', 'Processing', NULL), -- Aisha
-(29, 3, '2025-03-25 09:00:00', 'Pending', NULL), -- Ahmed Khan
-(5, 4, '2025-04-10 11:20:00', 'Pending', NULL); -- David Brown
+(6, 1, '2022-04-20 11:05:00', 'Delivered', NULL),
+(1, 2, '2022-05-15 14:20:00', 'Delivered', NULL),
+(7, 3, '2022-06-10 09:30:00', 'Delivered', NULL),
+(11, 1, '2022-07-05 16:00:00', 'Delivered', '15 Rue de Rivoli, Paris'),
+(8, 2, '2022-08-18 10:45:00', 'Delivered', NULL),
+(13, 4, '2022-09-22 13:10:00', 'Delivered', NULL),
+(2, 1, '2022-10-30 15:00:00', 'Delivered', NULL),
+(9, 3, '2022-11-25 11:55:00', 'Delivered', NULL),
+(15, 4, '2022-12-15 17:30:00', 'Delivered', NULL),
+(3, 2, '2023-01-20 09:00:00', 'Delivered', NULL),
+(10, 5, '2023-02-14 10:10:00', 'Delivered', NULL),
+(17, 6, '2023-03-05 12:25:00', 'Delivered', NULL),
+(4, 1, '2023-04-19 14:50:00', 'Delivered', NULL),
+(12, 3, '2023-05-28 11:15:00', 'Delivered', NULL),
+(19, 4, '2023-06-30 16:40:00', 'Delivered', NULL),
+(5, 2, '2023-07-11 09:55:00', 'Delivered', NULL),
+(21, 5, '2023-08-09 13:00:00', 'Delivered', NULL),
+(6, 1, '2023-09-14 10:35:00', 'Delivered', NULL),
+(23, 6, '2023-10-21 15:20:00', 'Delivered', NULL),
+(25, 3, '2023-11-16 17:05:00', 'Delivered', NULL),
+(14, 4, '2023-12-22 11:45:00', 'Delivered', 'Av. Insurgentes Sur 500, Mexico City'),
+(16, 5, '2024-01-29 10:00:00', 'Shipped', NULL),
+(18, 6, '2024-02-17 14:00:00', 'Shipped', NULL),
+(7, 1, '2024-03-10 16:15:00', 'Processing', NULL),
+(20, 2, '2024-04-05 09:20:00', 'Delivered', NULL),
+(22, 3, '2024-05-12 11:00:00', 'Delivered', NULL),
+(1, 4, '2024-06-18 13:30:00', 'Delivered', NULL),
+(24, 5, '2024-07-25 15:50:00', 'Delivered', NULL),
+(9, 6, '2024-08-30 10:10:00', 'Delivered', NULL),
+(26, 1, '2024-09-11 12:40:00', 'Shipped', NULL),
+(10, 2, '2024-10-16 14:25:00', 'Processing', NULL),
+(28, 3, '2024-11-20 09:45:00', 'Delivered', NULL),
+(12, 4, '2024-12-08 16:00:00', 'Delivered', NULL),
+(30, 5, '2025-01-15 11:35:00', 'Processing', NULL),
+(3, 6, '2025-01-28 17:10:00', 'Shipped', NULL),
+(27, 1, '2025-02-19 10:50:00', 'Pending', NULL),
+(15, 2, '2025-03-05 14:05:00', 'Processing', NULL),
+(29, 3, '2025-03-25 09:00:00', 'Pending', NULL),
+(5, 4, '2025-04-10 11:20:00', 'Pending', NULL),
+(5, 4, '2025-04-12 13:45:00', 'Pending', NULL);
 
--- Insert Order Items (More items per order, some with discounts)
--- Note: Prices are copied from product table for simplicity, real system might use historical price.
+
+-- Insert Order Items (Child Records) - Referencing order IDs 1 through 40
+-- This section should now have a higher chance of success if the ALTER TABLE command worked
+-- and the Orders table now contains order_id 1 through 40.
 INSERT INTO Order_Items (order_id, product_id, quantity, price_per_unit, discount) VALUES
--- Order 1 (Siti)
 (1, 9, 1, 69.99, 0.00), (1, 16, 1, 29.99, 0.00),
--- Order 2 (John)
-(2, 2, 1, 2999.99, 100.00), -- Discount on TV
--- Order 3 (Lim)
+(2, 2, 1, 2999.99, 100.00),
 (3, 6, 1, 229.99, 0.00), (3, 25, 1, 39.99, 0.00),
--- Order 4 (Isabelle)
 (4, 13, 1, 89.99, 0.00),
--- Order 5 (Kumar)
 (5, 4, 1, 279.99, 0.00), (5, 11, 2, 29.99, 0.00),
--- Order 6 (Fatima)
-(6, 23, 1, 449.99, 20.00), -- Discount on Dishwasher
--- Order 7 (Jane)
+(6, 23, 1, 449.99, 20.00),
 (7, 7, 1, 599.99, 0.00),
--- Order 8 (Chen)
 (8, 10, 1, 149.99, 10.00), (8, 17, 1, 34.99, 0.00),
--- Order 9 (Aisha)
 (9, 15, 1, 129.99, 0.00), (9, 20, 1, 59.99, 0.00),
--- Order 10 (Peter)
 (10, 12, 1, 499.99, 0.00),
--- Order 11 (Abdul)
 (11, 18, 1, 159.99, 0.00),
--- Order 12 (Hans)
 (12, 1, 1, 2199.99, 0.00),
--- Order 13 (Mary)
 (13, 14, 1, 279.99, 15.00), (13, 13, 1, 89.99, 0.00),
--- Order 14 (Kenji)
 (14, 5, 1, 649.99, 0.00),
--- Order 15 (Tan Ah Kow)
 (15, 19, 2, 99.99, 0.00), (15, 21, 1, 119.99, 0.00),
--- Order 16 (David Brown)
 (16, 3, 1, 199.99, 0.00),
--- Order 17 (Mike Lee)
-(17, 22, 1, 199.99, 0.00), (17, 11, 5, 29.99, 5.00), -- Bulk discount bulbs
--- Order 18 (Siti)
+(17, 22, 1, 199.99, 0.00), (17, 11, 5, 29.99, 5.00),
 (18, 8, 1, 179.99, 0.00),
--- Order 19 (William)
 (19, 24, 1, 199.99, 0.00),
--- Order 20 (Mohd Ali)
 (20, 9, 1, 69.99, 0.00), (20, 25, 1, 39.99, 0.00),
--- Order 21 (Carlos)
-(21, 1, 1, 2199.99, 200.00), -- Big discount Fridge
--- Order 22 (Ravi)
+(21, 1, 1, 2199.99, 200.00),
 (22, 10, 1, 149.99, 0.00), (22, 16, 2, 29.99, 0.00),
--- Order 23 (Olivia)
 (23, 13, 1, 89.99, 0.00),
--- Order 24 (Lim)
 (24, 17, 2, 34.99, 0.00), (24, 20, 1, 59.99, 0.00),
--- Order 25 (Chloe)
 (25, 4, 1, 279.99, 0.00),
--- Order 26 (Nur)
 (26, 18, 1, 159.99, 10.00),
--- Order 27 (John)
 (27, 5, 1, 649.99, 0.00),
--- Order 28 (Sophia)
 (28, 2, 1, 2999.99, 0.00), (28, 7, 1, 599.99, 50.00),
--- Order 29 (Chen)
-(29, 11, 10, 29.99, 10.00), -- Bulk bulbs
--- Order 30 (Anna)
+(29, 11, 10, 29.99, 10.00),
 (30, 12, 1, 499.99, 0.00),
--- Order 31 (Abdul)
 (31, 6, 1, 229.99, 0.00),
--- Order 32 (Jennifer)
 (32, 15, 2, 129.99, 5.00), (32, 24, 1, 199.99, 0.00),
--- Order 33 (Kenji)
 (33, 22, 1, 199.99, 0.00),
--- Order 34 (Maria Silva)
 (34, 14, 1, 279.99, 0.00), (34, 21, 1, 119.99, 0.00),
--- Order 35 (Peter)
 (35, 9, 2, 69.99, 5.00),
--- Order 36 (David Kim)
 (36, 1, 1, 2199.99, 0.00),
--- Order 37 (Aisha)
 (37, 19, 1, 99.99, 0.00), (37, 16, 3, 29.99, 2.00),
--- Order 38 (Ahmed Khan)
 (38, 3, 1, 199.99, 0.00),
--- Order 39 (David Brown)
 (39, 8, 1, 179.99, 0.00), (39, 11, 3, 29.99, 0.00),
--- Order 40 (David Brown) - Assuming this is a new order ID 40
 (40, 25, 2, 39.99, 0.00);
 
 -- --------------------------
---      END OF SAMPLE DATA
+--      END OF SCRIPT
 -- --------------------------
-
--- Example Revenue Queries (Remain the same logic)
-
--- Total Revenue All Time (considering discounts)
--- SELECT SUM(quantity * (price_per_unit - discount)) AS total_revenue FROM Order_Items;
-
--- Total Revenue for the Year 2024
--- SELECT SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS revenue_2024
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- WHERE YEAR(o.order_date) = 2024;
-
--- Total Revenue for the Year 2023
--- SELECT SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS revenue_2023
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- WHERE YEAR(o.order_date) = 2023;
-
--- Total Revenue for the Year 2022
--- SELECT SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS revenue_2022
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- WHERE YEAR(o.order_date) = 2022;
-
--- Revenue per Salesperson for 2024
--- SELECT
---     sp.first_name,
---     sp.last_name,
---     SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS salesperson_revenue_2024
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- JOIN SalesPersons sp ON o.salesperson_id = sp.salesperson_id
--- WHERE YEAR(o.order_date) = 2024
--- GROUP BY sp.salesperson_id
--- ORDER BY salesperson_revenue_2024 DESC;
-
--- Calculate salesperson commission for 2024
--- SELECT
---     sp.first_name,
---     sp.last_name,
---     SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS total_sales_2024,
---     sp.commission_rate,
---     SUM(oi.quantity * (oi.price_per_unit - oi.discount)) * sp.commission_rate AS commission_earned_2024
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- JOIN SalesPersons sp ON o.salesperson_id = sp.salesperson_id
--- WHERE YEAR(o.order_date) = 2024
--- GROUP BY sp.salesperson_id, sp.first_name, sp.last_name, sp.commission_rate
--- ORDER BY commission_earned_2024 DESC;
-
--- Top 10 Customers by Total Spending
--- SELECT
---     c.first_name,
---     c.last_name,
---     c.email,
---     SUM(oi.quantity * (oi.price_per_unit - oi.discount)) AS total_spent
--- FROM Order_Items oi
--- JOIN Orders o ON oi.order_id = o.order_id
--- JOIN Customers c ON o.customer_id = c.customer_id
--- GROUP BY c.customer_id, c.first_name, c.last_name, c.email
--- ORDER BY total_spent DESC
--- LIMIT 10;
-
--- Top 5 Selling Products (by quantity) in the last year (2024-04-14 to 2025-04-14)
--- SELECT
---    p.product_name,
---    SUM(oi.quantity) as total_quantity_sold
--- FROM Order_Items oi
--- JOIN Products p ON oi.product_id = p.product_id
--- JOIN Orders o ON oi.order_id = o.order_id
--- WHERE o.order_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND CURDATE()
--- GROUP BY p.product_id, p.product_name
--- ORDER BY total_quantity_sold DESC
--- LIMIT 5;
