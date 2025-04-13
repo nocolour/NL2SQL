@@ -1,0 +1,9 @@
+{
+    "database": {
+        "host": "127.0.0.1",
+        "user": "root",
+        "password": "",
+        "database": "nl2sql_test_ecommerce"
+    },
+    "openai_api_key": ""
+}
