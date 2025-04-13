@@ -3,7 +3,7 @@
         "host": "127.0.0.1",
         "user": "root",
         "password": "",
-        "database": "nl2sql_test_ecommerce"
+        "database": "nl2sql_test2"
     },
     "openai_api_key": ""
 }
